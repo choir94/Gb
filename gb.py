@@ -24,12 +24,8 @@ except Exception as e:
 # Daftar penerima
 recipients = [
     "0x04877e16bE1221D01298566d84e24C91F0859182",
-    "0x031d969Ed41B98c391555a49F898a5645D325146",
     "0x087402c52dc51891e257ff2133f63259c9913be4",
     "0x0C7fa3F74b018b328144FDe3381c706342C4CBfF",
-    "0x8864979890390026b13A97cf0Ba86698fB99a5C6",
-    "0x01D3b6D8230bb83653Ac1d8b41047Db929FB9875",
-    "0x58a0F3D92559BA40376602BBDabC728d4eF86bC5",
     "0x11e378C9DD7bEED43ce08e7619F78376F7dfAFbb",
     "0x1770437DC10e1cF468C3a985cAfeA74140C5A658",
     "0x1D561E1fc9535BB6a11928682A5E98a121d3C246",
@@ -39,7 +35,6 @@ recipients = [
     "0x3072FD52D9b590fd7C8d3C9E9b707fC1b4Ea0ce8",
     "0x32D0FAF8FB05FCCcd88D6E82431c3A37391C6CAC",
     "0x42Eb40652d55c25057478Fc97DdB62443d059D40",
-    "0x031d969Ed41B98c391555a49F898a5645D325146",
     "0x45c6926F276513541cf093C8f08AfB187dbb6314",
     "0x53cE27073C5B9206018eD0ac5243e30a15c9CA07",
     "0x57D0AADD62ceF24550eA974e76609b75F4388A28",
@@ -73,30 +68,31 @@ else:
 # Konversi jumlah ke format yang benar (1 NEX = 10**18 Wei)
 amount_in_wei = web3.to_wei(AMOUNT_TO_SEND, 'ether')
 
+# Fungsi untuk mengirim token ke satu penerima
 def send_token(receiver_address):
-    gas_price = web3.eth.gas_price
-    while True:
-        try:
-            nonce = web3.eth.get_transaction_count(SENDER_ADDRESS)
-            tx = {
-                'nonce': nonce,
-                'to': receiver_address,
-                'value': amount_in_wei,
-                'gas': 21000,
-                'gasPrice': gas_price,
-                'chainId': CHAIN_ID
-            }
-            signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
-            tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            print(f"✅  1 NEX terkirim ke {receiver_address}! TX Hash: {web3.to_hex(tx_hash)}")
-            break
-        except Exception as e:
-            print(f"❌  Gagal mengirim ke {receiver_address}: {str(e)}")
-            gas_price = int(gas_price * 1.2)  # Naikkan gas price 20%
-            print(f"🔹 Mencoba ulang dengan gas price: {gas_price} Wei")
+    try:
+        nonce = web3.eth.get_transaction_count(SENDER_ADDRESS)
+        tx = {
+            'nonce': nonce,
+            'to': receiver_address,
+            'value': amount_in_wei,
+            'gas': 21000,
+            'gasPrice': web3.to_wei('5', 'gwei'),  # Atur gas price sesuai jaringan
+            'chainId': CHAIN_ID
+        }
+        # Tanda tangani transaksi dengan private key
+        signed_tx = web3.eth.account.sign_transaction(tx, PRIVATE_KEY)
+        # Kirim transaksi
+        tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        # Tampilkan hasil transaksi
+        print(f"✅  1 NEX terkirim ke {receiver_address}! TX Hash: {web3.to_hex(tx_hash)}")
+    except Exception as e:
+        print(f"❌  Gagal mengirim ke {receiver_address}: {str(e)}")
 
+# Loop untuk mengirim ke semua penerima dengan delay 60 detik
 for recipient in recipients:
-    print(f"🔹 Mengirim 1 NEX ke: {recipient}")
+    print(f"?? Mengirim 1 NEX ke: {recipient}")
     send_token(recipient)
     print("⏳  Menunggu 60 detik sebelum transaksi berikutnya...")
-    time.sleep(60)
+    time.sleep(60)  # Delay 60 detik
+
